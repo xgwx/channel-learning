@@ -15,11 +15,9 @@ def h_cal(tx_loc, rx_loc, scat_loc, opt):
 		d = np.linalg.norm(tx_loc- scat_loc[i,:]) + np.linalg.norm(scat_loc[i,:]-rx_loc)
 		h_nlos = h_nlos + lamda/(4*cmath.pi*d)*cmath.exp(1j*2*cmath.pi*d/lamda)
 		power_nlos = power_nlos + (lamda/(4*cmath.pi*d))**2
-		
-	power_los_adjust = K/(K+1)*(power_los + power_nlos)
-	power_nlos_adjust = 1/(K+1)*(power_los + power_nlos)
-	h = cmath.sqrt(power_los_adjust)*h_los/cmath.sqrt(power_los) + cmath.sqrt(power_nlos_adjust)*h_nlos/cmath.sqrt(power_nlos)
-
+	power_los_adjust = (power_los + power_nlos)/power_los*K/(K+1)
+	power_nlos_adjust = (power_los + power_nlos)/power_nlos/(K+1)
+	h = cmath.sqrt(power_los_adjust)*h_los + cmath.sqrt(power_nlos_adjust)*h_nlos
 	return h
 #Parameter Definition
 light_speed=299792458
@@ -27,9 +25,9 @@ central_frequency = 2150e6
 N_frequency=1 #add more points
 
 N_MBS = 100#MBS antenna number, 
-N_SBS = 10 
+N_SBS = 5 
 N_Scatter = 10       
-N_MS = 2000
+N_MS = 20
 
 K = 10 #Question, what's the use of this parameter?
 central_lamda = light_speed/central_frequency
@@ -75,7 +73,7 @@ for i_fre in range(N_frequency):
 			for i_SBS in range(N_SBS):
 				H_SBS[i_MS][i_SBS][i_fre] = h_cal(MS_locations[i_MS,:], SBS_locations[i_SBS,:] , Scatter_locations,opt)
 
-np.savez('DataCL.npz',N_frequency=N_frequency,N_MBS=N_MBS,\
+np.savez(''.join([str(N_MS),'_',str(N_MBS),'_',str(N_SBS),'_',str(N_frequency),'_DataCL.npz']),N_frequency=N_frequency,N_MBS=N_MBS,\
 	N_Scatter=N_Scatter,N_MS=N_MS,MBS_locations=MBS_locations,\
 	SBS_locations=SBS_locations,Scatter_locations=Scatter_locations,\
 	MS_locations=MS_locations,H_MBS=H_MBS,H_SBS=H_SBS,N_SBS=N_SBS)
